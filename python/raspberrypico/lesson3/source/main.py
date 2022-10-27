@@ -16,6 +16,27 @@ def check_devices(device_list):
     for device in device_list:  
         print("Decimal address: ", device," | Hex address: ", hex(device))
 
+# Function for calculation altitude from pressure and temperature values
+# because altitude() method is not present in the Library
+
+def altitude_HYP(hPa , temperature):
+    # Hypsometric Equation (Max Altitude < 11 Km above sea level)
+    temperature = temperature
+    local_pressure = hPa
+    sea_level_pressure = 1013.25 # hPa      
+    pressure_ratio = sea_level_pressure/local_pressure # sea level pressure = 1013.25 hPa
+    h = (((pressure_ratio**(1/5.257)) - 1) * temperature ) / 0.0065
+    return h
+
+
+# altitude from international barometric formula, given in BMP 180 datasheet
+def altitude_IBF(pressure):
+    local_pressure = pressure    # Unit : hPa
+    sea_level_pressure = 1013.25 # Unit : hPa
+    pressure_ratio = local_pressure / sea_level_pressure
+    altitude = 44330*(1-(pressure_ratio**(1/5.255)))
+    return altitude
+
 # Initiate I2C 
 i2c = I2C(0,           # positional argument - I2C id
           sda=Pin(4),  # named argument - serial data pin
@@ -73,27 +94,6 @@ print("BMP Object created successfully !")
 utime.sleep(2) # change it as per requirement
 print("\n")
 
-# Function for calculation altitude from pressure and temperature values
-# because altitude() method is not present in the Library
-
-def altitude_HYP(hPa , temperature):
-    # Hypsometric Equation (Max Altitude < 11 Km above sea level)
-    temperature = temperature
-    local_pressure = hPa
-    sea_level_pressure = 1013.25 # hPa      
-    pressure_ratio = sea_level_pressure/local_pressure # sea level pressure = 1013.25 hPa
-    h = (((pressure_ratio**(1/5.257)) - 1) * temperature ) / 0.0065
-    return h
-
-
-# altitude from international barometric formula, given in BMP 180 datasheet
-def altitude_IBF(pressure):
-    local_pressure = pressure    # Unit : hPa
-    sea_level_pressure = 1013.25 # Unit : hPa
-    pressure_ratio = local_pressure / sea_level_pressure
-    altitude = 44330*(1-(pressure_ratio**(1/5.255)))
-    return altitude
-
 #sleep(2)
 #lcd.clear()
 while True:
@@ -109,7 +109,8 @@ while True:
     # convert pascal to hectopascal (hPa)
     # 1 hPa = 100 Pa
     # Therefore 1 Pa = 0.01 hPa
-    pressure_hPa = ( pressure * 0.01 ) + ERROR # hPa
+    #pressure_hPa = ( pressure * 0.01 ) + ERROR # hPa
+    pressure_hPa = ( pressure * 0.01 ) # hPa
     
     # accquire altitude values from HYPSOMETRIC formula
     h = altitude_HYP(pressure_hPa, temperature_k)
@@ -128,7 +129,7 @@ while True:
     #utime.sleep(1.5)
     
     lcd.move_to(0,0)
-    lcd.putstr("Pico Weather Stn")
+    lcd.putstr("STEM Weather Stn")
     lcd.move_to(0,1)
     lcd.putstr("                ")
     lcd.move_to(0,1)
